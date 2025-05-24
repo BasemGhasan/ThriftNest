@@ -2,24 +2,46 @@ import 'package:flutter/material.dart';
 
 import 'LoginScreen.dart';
 import 'SignupScreen.dart';
+
 class ThriftNestApp extends StatelessWidget {
-  const ThriftNestApp({Key? key}) : super(key: key);
+  const ThriftNestApp({super.key});
 
   // brand colors
   static const Color backgroundColor = Color(0xFFEFE9DC);
-  static const Color primaryColor    = Color(0xFF7BA05B);
-  static const Color textColor       = Color(0xFF2E3C48);
+  static const Color primaryColor = Color(0xFF7BA05B);
+  static const Color textColor = Color(0xFF2E3C48);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'ThriftNest',
       theme: ThemeData(
         scaffoldBackgroundColor: backgroundColor,
         primaryColor: primaryColor,
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: textColor),
+
+        // — Add this block here —
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: primaryColor),
+          ),
+          // RED error styling:
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Colors.red),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Colors.red),
+          ),
+          errorStyle: const TextStyle(color: Colors.red),
+          labelStyle: TextStyle(color: textColor),
         ),
+
+        // — end of added block —
+        textTheme: const TextTheme(bodyMedium: TextStyle(color: textColor)),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: primaryColor,
@@ -41,7 +63,7 @@ class ThriftNestApp extends StatelessWidget {
 }
 
 class OnboardingScreen extends StatelessWidget {
-  const OnboardingScreen({Key? key}) : super(key: key);
+  const OnboardingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +150,9 @@ class OnboardingScreen extends StatelessWidget {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const LoginScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => const LoginScreen(),
+                          ),
                         );
                       },
                       child: const Text('Log in'),
@@ -147,7 +171,9 @@ class OnboardingScreen extends StatelessWidget {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const SignupScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const SignupScreen(),
+                          ),
                         );
                       },
                       child: const Text('Sign up'),

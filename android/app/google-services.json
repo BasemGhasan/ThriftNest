@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "424182117489",
+    "project_id": "thriftnest-27ad6",
+    "storage_bucket": "thriftnest-27ad6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:424182117489:android:3bf8f486acf3325f4457d0",
+        "android_client_info": {
+          "package_name": "com.example.thrift_nest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqkO1p1N76omCGmO3ScPpEA96_4NtiwJs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

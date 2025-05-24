@@ -1,63 +1,51 @@
+
 import 'package:flutter/material.dart';
+import '../AppLogic/login.dart';    
+import 'onboarding.dart';           
 
-import 'onboarding.dart';
-
-class ThriftNestApp extends StatelessWidget {
-  const ThriftNestApp({Key? key}) : super(key: key);
-
-  // brand colours
-  static const Color backgroundColor = Color(0xFFEFE9DC);
-  static const Color primaryColor    = Color(0xFF7BA05B);
-  static const Color textColor       = Color(0xFF2E3C48);
-
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ThriftNest',
-      theme: ThemeData(
-        scaffoldBackgroundColor: backgroundColor,
-        primaryColor: primaryColor,
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: textColor),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: primaryColor),
-          ),
-          labelStyle: TextStyle(color: textColor),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primaryColor,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-      home: const LoginScreen(),
-    );
-  }
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+class _LoginScreenState extends State<LoginScreen> {
+  final _formKey            = GlobalKey<FormState>();
+  final _emailController    = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  String? _validateEmail(String? v) {
+    if (v == null || v.trim().isEmpty) return 'Please enter your email';
+    return null;
+  }
+
+  String? _validatePassword(String? v) {
+    if (v == null || v.isEmpty) return 'Please enter your password';
+    return null;
+  }
+
+  void _onSignIn() {
+    if (_formKey.currentState!.validate()) {
+      logIn(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        context: context,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     // responsive sizing
-    final sw = MediaQuery.of(context).size.width;
-    final sh = MediaQuery.of(context).size.height;
+    final sw     = MediaQuery.of(context).size.width;
+    final sh     = MediaQuery.of(context).size.height;
     final logoH  = sh * 0.12;
     final fieldW = sw * 0.88;
     final vSpace = sh * 0.025;
@@ -71,7 +59,7 @@ class LoginScreen extends StatelessWidget {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+              MaterialPageRoute(builder: (_) => const OnboardingScreen()),
             );
           },
         ),
@@ -79,97 +67,104 @@ class LoginScreen extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: sw * 0.06),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(height: vSpace * 2),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(height: vSpace * 2),
 
-              // logo
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.asset(
-                  'lib/images/ThriftNest_Logo.png',
-                  height: logoH,
-                  fit: BoxFit.contain,
-                ),
-              ),
-
-              SizedBox(height: vSpace),
-
-              // title
-              const Text(
-                'Log In',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: ThriftNestApp.textColor,
-                ),
-              ),
-
-              SizedBox(height: vSpace * 1.5),
-
-              // email field
-              SizedBox(
-                width: fieldW,
-                child: TextFormField(
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email address',
+                // logo
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset(
+                    'lib/images/ThriftNest_Logo.png',
+                    height: logoH,
+                    fit: BoxFit.contain,
                   ),
                 ),
-              ),
 
-              SizedBox(height: vSpace),
+                SizedBox(height: vSpace),
 
-              // password field
-              SizedBox(
-                width: fieldW,
-                child: TextFormField(
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
+                // title
+                const Text(
+                  'Log In',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: ThriftNestApp.textColor,
                   ),
                 ),
-              ),
 
-              // forgot password link
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    // TODO: navigate to password recovery
-                  },
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    textStyle: const TextStyle(fontSize: 14),
-                    foregroundColor: ThriftNestApp.primaryColor,
+                SizedBox(height: vSpace * 1.5),
+
+                // email field
+                SizedBox(
+                  width: fieldW,
+                  child: TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'Email address',
+                    ),
+                    validator: _validateEmail,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
                   ),
-                  child: const Text(
-                    'Forgot password?',
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                      decorationThickness: 2,
+                ),
+
+                SizedBox(height: vSpace),
+
+                // password field
+                SizedBox(
+                  width: fieldW,
+                  child: TextFormField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Password',
+                    ),
+                    validator: _validatePassword,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                  ),
+                ),
+
+                // forgot password link
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      // TODO: navigate to password recovery
+                    },
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      textStyle: const TextStyle(fontSize: 14),
+                      foregroundColor: ThriftNestApp.primaryColor,
+                    ),
+                    child: const Text(
+                      'Forgot password?',
+                      style: TextStyle(
+                        decoration: TextDecoration.underline,
+                        decorationThickness: 2,
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-              SizedBox(height: vSpace * 2),
+                SizedBox(height: vSpace * 2),
 
-              // Sign In button
-              SizedBox(
-                width: fieldW,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: perform login
-                  },
-                  child: const Text('Log In'),
+                // Sign In button
+                SizedBox(
+                  width: fieldW,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _onSignIn,
+                    child: const Text('Sign In'),
+                  ),
                 ),
-              ),
 
-              SizedBox(height: vSpace),
-            ],
+                SizedBox(height: vSpace),
+              ],
+            ),
           ),
         ),
       ),
