@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../SellerScreens/SellerManageListing.dart';
 // import '../screens/buyer_home.dart';
-// import '../screens/courier_home.dart';
+import '../courierScreens/courier_dashboard.dart';
 
 Future<void> logIn({
   required String email,
@@ -43,9 +43,9 @@ Future<void> logIn({
       case 'Seller':
         nextScreen = const SellerManageListing();
         break;
-      // case 'Courier':
-      //   nextScreen = const CourierHomePlaceholder();
-      //   break;
+       case 'Courier':
+         nextScreen = const CourierDashboard();
+        break;
       // case 'Buyer':
       default:
         nextScreen = const SellerManageListing();
