@@ -2,117 +2,151 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:flutter/foundation.dart';
 import '../CommonScreens/onboarding.dart';
 
-// A widget that requests location permission, shows a Google Map with a draggable
-// pin at the user's current location, and reports back the selected coords & address.
 class LocationPicker extends StatefulWidget {
-  // Called whenever the selected location changes (initial or drag).
   final void Function(LatLng coords, String address) onLocationChanged;
+  final TextEditingController controller;
 
   const LocationPicker({
     Key? key,
     required this.onLocationChanged,
+    required this.controller,
   }) : super(key: key);
 
   @override
   State<LocationPicker> createState() => _LocationPickerState();
 }
 
+/// Runs in a background isolate.
+Future<String> _placemarkFromCoordsInIsolate(Map<String, double> args) async {
+  final lat = args['lat']!;
+  final lng = args['lng']!;
+  try {
+    final places = await placemarkFromCoordinates(lat, lng);
+    if (places.isNotEmpty) {
+      final p = places.first;
+      return '${p.street}, ${p.locality}';
+    }
+  } catch (_) {}
+  return '';
+}
+
 class _LocationPickerState extends State<LocationPicker> {
-  GoogleMapController? _mapController;
+  bool _loading = true;
+  bool _permissionDenied = false;
   LatLng? _currentCoords;
   String _currentAddress = '';
-  bool _permissionDenied = false;
+  GoogleMapController? _mapController;
 
   @override
   void initState() {
     super.initState();
-    _initLocation();
+    _fetchPreciseLocation();
   }
 
-  /// Requests permission and fetches current position.
-  Future<void> _initLocation() async {
-    // Check service
-    if (!await Geolocator.isLocationServiceEnabled()) {
+  Future<void> _fetchPreciseLocation() async {
+    try {
+      bool enabled = await Geolocator.isLocationServiceEnabled();
+      if (!enabled) {
+        setState(() => _permissionDenied = true);
+        return;
+      }
+
+      LocationPermission perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.denied || perm == LocationPermission.deniedForever) {
+        setState(() => _permissionDenied = true);
+        return;
+      }
+
+      final stopwatch = Stopwatch()..start();
+      Position pos;
+      do {
+        pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.bestForNavigation,
+        );
+      } while (pos.accuracy > 10 && stopwatch.elapsed.inSeconds < 10);
+
+      await _updateLocation(LatLng(pos.latitude, pos.longitude));
+    } catch (e) {
       setState(() => _permissionDenied = true);
-      return;
+    } finally {
+      setState(() => _loading = false);
     }
-    // Request permission
-    var perm = await Geolocator.checkPermission();
-    if (perm == LocationPermission.denied) {
-      perm = await Geolocator.requestPermission();
-    }
-    if (perm == LocationPermission.denied || perm == LocationPermission.deniedForever) {
-      setState(() => _permissionDenied = true);
-      return;
-    }
-    // Get position
-    final pos = await Geolocator.getCurrentPosition();
-    _updateLocation(LatLng(pos.latitude, pos.longitude));
   }
 
-  /// Updates coords, reverse-geocodes, and notifies parent.
   Future<void> _updateLocation(LatLng coords) async {
     _currentCoords = coords;
-    // Reverse geocode
-    final places = await placemarkFromCoordinates(coords.latitude, coords.longitude);
-    if (places.isNotEmpty) {
-      final p = places.first;
-      _currentAddress = '${p.street}, ${p.locality}';
-    }
+
+    // reverse‐geocoding in isolate
+    _currentAddress = await compute(
+      _placemarkFromCoordsInIsolate,
+      {'lat': coords.latitude, 'lng': coords.longitude},
+    );
+
+    widget.controller.text = _currentAddress;
     widget.onLocationChanged(coords, _currentAddress);
+
+    if (_mapController != null) {
+      _mapController!.animateCamera(CameraUpdate.newLatLng(coords));
+    }
+
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    // If no permission, fallback to manual entry
-    if (_permissionDenied) {
-      return TextFormField(
-        decoration: const InputDecoration(labelText: 'Location'),
-        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-      );
-    }
-    // While fetching
-    if (_currentCoords == null) {
+    if (_loading) {
       return const SizedBox(
         height: 200,
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    // Show map + address
+
+    if (_permissionDenied) {
+      return const Text(
+        'Location permission denied. Please enter manually.',
+        style: TextStyle(color: Colors.red),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(
-          height: 200,
-          child: GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: _currentCoords!,
-              zoom: 15,
-            ),
-            onMapCreated: (ctrl) => _mapController = ctrl,
-            onCameraMove: (pos) => _updateLocation(pos.target),
-            markers: {
-              Marker(
-                markerId: const MarkerId('selected'),
-                position: _currentCoords!,
-                draggable: true,
-                onDragEnd: (newPos) => _updateLocation(newPos),
+        if (_currentCoords != null) ...[
+          SizedBox(
+            height: 200,
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: _currentCoords!,
+                zoom: 17,
               ),
-            },
-            myLocationButtonEnabled: false,
+              onMapCreated: (c) => _mapController = c,
+              markers: {
+                Marker(
+                  markerId: const MarkerId('fixed'),
+                  position: _currentCoords!,
+                  draggable: false,
+                ),
+              },
+              myLocationButtonEnabled: false,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          _currentAddress,
-          style: const TextStyle(
-            color: ThriftNestApp.textColor,
-            fontSize: 14,
+          const SizedBox(height: 8),
+          Text(
+            _currentAddress.isEmpty
+                ? 'Your current location'
+                : _currentAddress,
+            style: const TextStyle(
+              color: ThriftNestApp.textColor,
+              fontSize: 14,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
