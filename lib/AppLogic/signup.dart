@@ -12,7 +12,7 @@ Future<void> signUp({
   required String email,
   required String password,
   required String phone,
-  required String role,           
+  required String role,
   required BuildContext context,
 }) async {
   try {
@@ -34,37 +34,39 @@ Future<void> signUp({
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('🎉 Congratulations, $fullName! You signed up as a $role.'),
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
 
-    // 4) Redirect based on role
-    Widget nextScreen;
-    switch (role) {
-      case 'Seller':
-        nextScreen = const SellerManageListing();
-        break;
-      case 'Buyer':
-        nextScreen = BuyerApp();
-        break;
-      case 'Courier':
-        nextScreen = const CourierDashboard();
-        break;
-      default:
-        nextScreen = const SellerManageListing();
-    }
-
-    // give the user a moment to see the SnackBar
+    // 4) Give the user a moment to see the SnackBar
     await Future.delayed(const Duration(milliseconds: 800));
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => nextScreen),
-    );
-
+    // 5) Redirect based on role, or show error if unrecognized
+    if (role == 'Seller') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const SellerManageListing()),
+      );
+    } else if (role == 'Buyer') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => BuyerApp()),
+      );
+    } else if (role == 'Courier') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const CourierDashboard()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unrecognized role: $role')),
+      );
+      return;
+    }
   } on FirebaseAuthException catch (e) {
+    final message = e.message ?? 'Signup failed. Please try again.';
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(e.message ?? 'Signup failed.'))
+      SnackBar(content: Text(message)),
     );
   }
 }

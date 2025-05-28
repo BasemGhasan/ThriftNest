@@ -23,7 +23,7 @@ Future<void> logIn({
       .doc(cred.user!.uid)
       .get();
     final data = snap.data();
-    final role = data?['role'] as String? ?? 'Buyer';  // default if missing
+    final role = data?['role'] as String?;
     final name = data?['fullName'] as String? ?? 'User';
 
     // 3) Welcome SnackBar
@@ -37,25 +37,28 @@ Future<void> logIn({
     // 4) Delay briefly so user can read the message
     await Future.delayed(const Duration(milliseconds: 800));
 
-    // 5) Redirect based on role
-    Widget nextScreen;
-    switch (role) {
-      case 'Seller':
-        nextScreen = const SellerManageListing();
-        break;
-      case 'Courier':
-        nextScreen = const CourierDashboard();
-        break;
-      case 'Buyer':
-        nextScreen = BuyerApp();
-      default:
-        nextScreen = const CourierDashboard();
+    // 5) Redirect based on role, or show error if unrecognized
+    if (role == 'Seller') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const SellerManageListing()),
+      );
+    } else if (role == 'Courier') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const CourierDashboard()),
+      );
+    } else if (role == 'Buyer') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => BuyerApp()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unrecognized user role: ${role ?? 'None'}')),
+      );
+      return;
     }
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => nextScreen),
-    );
   }
   on FirebaseAuthException catch (e) {
     // existing error mapping
@@ -66,7 +69,7 @@ Future<void> logIn({
         break;
       case 'wrong-password':
       case 'invalid-email':
-      case 'invalid-credential': // catch web case too
+      case 'invalid-credential':
         message = 'Wrong email or password. Please try again.';
         break;
       default:
