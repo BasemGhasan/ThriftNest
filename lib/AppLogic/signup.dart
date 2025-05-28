@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../SellerScreens/SellerManageListing.dart';
-// import '../BuyerScreens/buyer_home.dart';
-// import '../CourierScreens/courier_home.dart';
+import 'package:thirft_nest/BuyerHomePage.dart';
+import '../courierScreens/courier_dashboard.dart';
 
 Future<void> signUp({
   required String fullName,
@@ -44,12 +44,12 @@ Future<void> signUp({
       case 'Seller':
         nextScreen = const SellerManageListing();
         break;
-      // case 'Buyer':
-      //   nextScreen = const BuyerHomePlaceholder();
-      //   break;
-      // case 'Courier':
-      //   nextScreen = const CourierHomePlaceholder();
-      //   break;
+      case 'Buyer':
+        nextScreen = BuyerApp();
+        break;
+      case 'Courier':
+        nextScreen = const CourierDashboard();
+        break;
       default:
         nextScreen = const SellerManageListing();
     }

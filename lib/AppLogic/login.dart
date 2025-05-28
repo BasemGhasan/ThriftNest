@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../SellerScreens/SellerManageListing.dart';
-// import '../screens/buyer_home.dart';
+import 'package:thirft_nest/BuyerHomePage.dart';
 import '../courierScreens/courier_dashboard.dart';
 
 Future<void> logIn({
@@ -43,12 +43,13 @@ Future<void> logIn({
       case 'Seller':
         nextScreen = const SellerManageListing();
         break;
-       case 'Courier':
-         nextScreen = const CourierDashboard();
+      case 'Courier':
+        nextScreen = const CourierDashboard();
         break;
-      // case 'Buyer':
+      case 'Buyer':
+        nextScreen = BuyerApp();
       default:
-        nextScreen = const SellerManageListing();
+        nextScreen = const CourierDashboard();
     }
 
     Navigator.pushReplacement(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../CommonScreens/onboarding.dart';
+import 'ItemPostingOverlay.dart';
 
 class SellerManageListing extends StatefulWidget {
   const SellerManageListing({Key? key}) : super(key: key);
@@ -10,14 +11,33 @@ class SellerManageListing extends StatefulWidget {
   State<SellerManageListing> createState() => _SellerManageListingState();
 }
 
-class _SellerManageListingState extends State<SellerManageListing> {
+class _SellerManageListingState extends State<SellerManageListing>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   late final Future<String> _userNameFuture;
+
+  /// Controls overlay fade and FAB rotation
+  late final AnimationController _controller;
+  late final Animation<double> _overlayFade;
 
   @override
   void initState() {
     super.initState();
     _userNameFuture = _fetchUserName();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _overlayFade = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<String> _fetchUserName() async {
@@ -55,10 +75,14 @@ class _SellerManageListingState extends State<SellerManageListing> {
     );
   }
 
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+  void _onTabTapped(int index) => setState(() => _currentIndex = index);
+
+  void _toggleOverlay() {
+    if (_controller.isDismissed) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
   }
 
   @override
@@ -76,14 +100,13 @@ class _SellerManageListingState extends State<SellerManageListing> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        automaticallyImplyLeading: false,  // removes back arrow
-        centerTitle: false,
+        automaticallyImplyLeading: false,
         title: FutureBuilder<String>(
           future: _userNameFuture,
           builder: (context, snapshot) {
             final name = snapshot.data ?? 'User';
             return Text(
-              'Hi, $name !',
+              'Hi, $name!',
               style: const TextStyle(
                 color: ThriftNestApp.textColor,
                 fontSize: 24,
@@ -96,21 +119,45 @@ class _SellerManageListingState extends State<SellerManageListing> {
           IconButton(
             icon: Icon(
               Icons.notifications,
-              size: 28,  // larger icon
+              size: 28,
               color: ThriftNestApp.primaryColor,
             ),
             onPressed: () {},
           ),
         ],
       ),
-      body: tabs[_currentIndex],
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: ThriftNestApp.primaryColor,
-        child: const Icon(Icons.add),
-        onPressed: () {
-          // TODO: navigate to add item screen
-        },
+
+      body: Stack(
+        children: [
+          tabs[_currentIndex],
+
+          // Overlay fades in/out and is interactive when visible
+          AnimatedBuilder(
+            animation: _overlayFade,
+            builder: (context, child) {
+              return Opacity(
+                opacity: _overlayFade.value,
+                child: IgnorePointer(
+                  ignoring: _overlayFade.value == 0,
+                  child: child,
+                ),
+              );
+            },
+            child: ItemPostingOverlay(onClose: _toggleOverlay),
+          ),
+        ],
       ),
+
+      floatingActionButton: RotationTransition(
+        turns: Tween(begin: 0.0, end: 1.0).animate(_overlayFade),
+        child: FloatingActionButton(
+          backgroundColor: ThriftNestApp.primaryColor,
+          shape: const CircleBorder(),  // ensures perfect circle
+          child: const Icon(Icons.add, size: 32),
+          onPressed: _toggleOverlay,
+        ),
+      ),
+
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
@@ -119,22 +166,10 @@ class _SellerManageListingState extends State<SellerManageListing> {
         showSelectedLabels: false,
         showUnselectedLabels: false,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: '',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.chat), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: ''),
         ],
       ),
     );
