@@ -116,7 +116,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Image.asset(
-          'lib/Images/ThriftNest_Logo.png',
+          'lib/images/ThriftNest_Logo.png',
           height: 40,
         ),
         Row(
@@ -215,7 +215,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: Image.asset(
-            'lib/Images/ThriftNest_Logo.png',
+            'lib/images/ThriftNest_Logo.png',
             width: 50,
             height: 50,
             fit: BoxFit.cover,

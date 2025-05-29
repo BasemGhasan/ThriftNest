@@ -2,7 +2,8 @@
 
 import 'package:flutter/material.dart';
 import '../AppLogic/signup.dart'; 
-import 'onboarding.dart'; // for back navigation
+import '../main.dart';
+import 'onboarding.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});

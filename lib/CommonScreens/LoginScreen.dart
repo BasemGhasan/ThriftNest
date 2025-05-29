@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../AppLogic/login.dart';    
 import 'onboarding.dart';           
+import '../main.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
