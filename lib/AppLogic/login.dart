@@ -51,7 +51,7 @@ Future<void> logIn({
     } else if (role == 'Buyer') {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => BuyerApp()),
+        MaterialPageRoute(builder: (_) => BuyerHomePage()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

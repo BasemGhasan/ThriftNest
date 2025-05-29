@@ -50,7 +50,7 @@ Future<void> signUp({
     } else if (role == 'Buyer') {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => BuyerApp()),
+        MaterialPageRoute(builder: (_) => BuyerHomePage()),
       );
     } else if (role == 'Courier') {
       Navigator.pushReplacement(
