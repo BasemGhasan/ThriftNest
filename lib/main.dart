@@ -7,11 +7,17 @@ Future <void> main() async{
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const ThriftNestApp());
+  runApp(const Onboarding());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class ThriftNestApp extends StatelessWidget {
+  const ThriftNestApp({super.key});
+
+  // brand colors
+  static const Color backgroundColor = Color(0xFFEFE9DC);
+  static const Color primaryColor = Color(0xFF7BA05B);
+  static const Color textColor = Color(0xFF2E3C48);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

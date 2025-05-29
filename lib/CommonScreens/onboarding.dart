@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
-
+import '../main.dart';
 import 'LoginScreen.dart';
 import 'SignupScreen.dart';
 
-class ThriftNestApp extends StatelessWidget {
-  const ThriftNestApp({super.key});
-
-  // brand colors
-  static const Color backgroundColor = Color(0xFFEFE9DC);
-  static const Color primaryColor = Color(0xFF7BA05B);
-  static const Color textColor = Color(0xFF2E3C48);
+class Onboarding extends StatelessWidget {
+  const Onboarding ({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,15 +12,15 @@ class ThriftNestApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'ThriftNest',
       theme: ThemeData(
-        scaffoldBackgroundColor: backgroundColor,
-        primaryColor: primaryColor,
+        scaffoldBackgroundColor: ThriftNestApp.backgroundColor,
+        primaryColor: ThriftNestApp.primaryColor,
 
         // — Add this block here —
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: primaryColor),
+            borderSide: BorderSide(color: ThriftNestApp.primaryColor),
           ),
           // RED error styling:
           errorBorder: OutlineInputBorder(
@@ -37,14 +32,14 @@ class ThriftNestApp extends StatelessWidget {
             borderSide: const BorderSide(color: Colors.red),
           ),
           errorStyle: const TextStyle(color: Colors.red),
-          labelStyle: TextStyle(color: textColor),
+          labelStyle: TextStyle(color: ThriftNestApp.textColor),
         ),
 
         // — end of added block —
-        textTheme: const TextTheme(bodyMedium: TextStyle(color: textColor)),
+        textTheme: const TextTheme(bodyMedium: TextStyle(color: ThriftNestApp.textColor)),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: primaryColor,
+            backgroundColor: ThriftNestApp.primaryColor,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
