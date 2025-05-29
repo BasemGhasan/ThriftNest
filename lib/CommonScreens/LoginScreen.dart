@@ -129,28 +129,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                // forgot password link
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      // TODO: navigate to password recovery
-                    },
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      textStyle: const TextStyle(fontSize: 14),
-                      foregroundColor: ThriftNestApp.primaryColor,
-                    ),
-                    child: const Text(
-                      'Forgot password?',
-                      style: TextStyle(
-                        decoration: TextDecoration.underline,
-                        decorationThickness: 2,
-                      ),
-                    ),
-                  ),
-                ),
-
                 SizedBox(height: vSpace * 2),
 
                 // Sign In button

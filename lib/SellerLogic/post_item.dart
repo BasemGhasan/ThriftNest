@@ -33,6 +33,10 @@ Future<void> submitNewItem({
   }
   final ownerId = user.uid;
 
+  // Retrieve the seller's phone number from the users collection.
+  final userDoc = await FirebaseFirestore.instance.collection('users').doc(ownerId).get();
+  final sellerPhoneNumber = userDoc.data()?['phone'] as String? ?? '';
+
   // offload image → Base64 if needed
   String? imageBase64;
   if (imageBytes != null) {
@@ -48,12 +52,16 @@ Future<void> submitNewItem({
     'ownerId':     ownerId,
     'createdAt':   FieldValue.serverTimestamp(),
     if (imageBase64 != null) 'imageBase64': imageBase64,
-
+    
     // location vs. geoPoint
     if (latitude != null && longitude != null)
       'geoPoint': GeoPoint(latitude, longitude)
     else
       'location': location,
+
+    // New fields:
+    'sellerPhoneNumber': sellerPhoneNumber,
+    'sellingStage': 'On Sell',
   };
 
   await FirebaseFirestore.instance.collection('items').add(data);

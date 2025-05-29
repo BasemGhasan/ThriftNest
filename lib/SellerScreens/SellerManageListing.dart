@@ -1,5 +1,3 @@
-// lib/SellerScreens/SellerManageListing.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -162,7 +160,6 @@ class _SellerManageListingState extends State<SellerManageListing> {
     final tabs = [
       listingsTab,
       placeholder('Sales Analytics coming soon'),
-      placeholder('Chats coming soon'),
       placeholder('Settings coming soon'),
     ];
 
@@ -214,7 +211,6 @@ class _SellerManageListingState extends State<SellerManageListing> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: ''),
         ],
       ),
