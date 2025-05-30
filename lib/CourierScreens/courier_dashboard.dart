@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../main.dart';
 import 'available_deliveries.dart';
 import 'my_deliveries.dart';
+import '../CommonScreens/ProfileManagementScreen.dart'; // Import ProfileManagementScreen
 
 class CourierDashboard extends StatefulWidget {
   const CourierDashboard({super.key});
@@ -45,7 +46,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
       const AvailableDeliveries(),
       const MyDeliveries(),
       _buildStatsTab(),
-      _buildSettingsTab(),
+      ProfileManagementScreen(),
     ];
 
     return Scaffold(
@@ -189,35 +190,34 @@ floatingActionButton: FloatingActionButton(
     );
   }
 
-  Widget _buildSettingsTab() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.settings,
-            size: 80,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Settings',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Coming Soon',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  //   return const Center(
+  //     child: Column(
+  //       mainAxisAlignment: MainAxisAlignment.center,
+  //       children: [
+  //         Icon(
+  //           Icons.settings,
+  //           size: 80,
+  //           color: Colors.grey,
+  //         ),
+  //         SizedBox(height: 16),
+  //         Text(
+  //           'Settings',
+  //           style: TextStyle(
+  //             fontSize: 18,
+  //             fontWeight: FontWeight.bold,
+  //             color: Colors.grey,
+  //           ),
+  //         ),
+  //         SizedBox(height: 8),
+  //         Text(
+  //           'Coming Soon',
+  //           style: TextStyle(
+  //             fontSize: 14,
+  //             color: Colors.grey,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }

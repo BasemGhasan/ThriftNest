@@ -11,6 +11,7 @@ import '../SellerLogic/item_crud.dart';
 import '../SellerLogic/seller_listings_service.dart';
 import '../SellerLogic/Item_model.dart';
 import '../SellerScreens/ItemDetailOverlay.dart';
+import '../CommonScreens/ProfileManagementScreen.dart'; // Import ProfileManagementScreen
 
 class SellerManageListing extends StatefulWidget {
   const SellerManageListing({super.key});
@@ -230,13 +231,10 @@ class _SellerManageListingState extends State<SellerManageListing> {
       },
     );
 
-    // Tab 2: Settings placeholder
-    Widget placeholder(String t) =>
-        Center(child: Text(t, style: const TextStyle(color: Colors.grey)));
     final tabs = [
       manageTab,
       historyTab,
-      placeholder('Settings coming soon'),
+      ProfileManagementScreen(),
     ];
 
     return Scaffold(
@@ -258,12 +256,14 @@ class _SellerManageListingState extends State<SellerManageListing> {
         ),
       ),
       body: IndexedStack(index: _currentIndex, children: tabs),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: ThriftNestApp.primaryColor,
-        shape: const CircleBorder(),
-        onPressed: _openAddSheet,
-        child: const Icon(Icons.add, size: 32),
-      ),
+      floatingActionButton: _currentIndex != 2
+          ? FloatingActionButton(
+              backgroundColor: ThriftNestApp.primaryColor,
+              shape: const CircleBorder(),
+              onPressed: _openAddSheet,
+              child: const Icon(Icons.add, size: 32),
+            )
+          : null,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onTabTapped,

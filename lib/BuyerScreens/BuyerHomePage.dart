@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'items_tab.dart';
 import 'placeholder.dart';
+import '../CommonScreens/ProfileManagementScreen.dart';
 
 class BuyerHomePage extends StatefulWidget {
   const BuyerHomePage({super.key});
@@ -38,7 +39,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
       const ItemsTab(),
       const PlaceholderTab(icon: Icons.list_alt, label: 'Orders coming soon'),
       const PlaceholderTab(icon: Icons.favorite_border, label: 'Favorites coming soon'),
-      const PlaceholderTab(icon: Icons.settings, label: 'Settings coming soon'),
+      ProfileManagementScreen(), 
     ];
 
     return Scaffold(
