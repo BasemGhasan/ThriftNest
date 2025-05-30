@@ -16,6 +16,8 @@ class BuyerLogic {
   final List<String> categories = ['All', 'Clothes', 'Electronics', 'Books', 'Home'];
   String selectedCategory = 'All';
 
+  List<Map<String, dynamic>> cart = [];
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -24,16 +26,56 @@ class BuyerLogic {
   Future<void> init(VoidCallback refresh) async {
     await loadProducts();
     await loadProfile();
+    // cart should be loaded from persistence if needed, for now it's in-memory
     refresh();
   }
 
   /// Fetch all products from Firestore.
   Future<void> loadProducts() async {
     final snapshot = await _firestore.collection('products').get();
-    allProducts = snapshot.docs
-        .map((doc) => doc.data())
-        .toList();
+    allProducts = snapshot.docs.map((doc) {
+      var data = doc.data();
+      data['id'] = doc.id; // Ensure item ID is included
+      return data;
+    }).toList();
     filteredProducts = List.from(allProducts);
+  }
+
+  /// Add item to cart.
+  void addToCart(Map<String, dynamic> item, BuildContext context, VoidCallback refresh) {
+    if (item['id'] == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Item has no ID, cannot add to cart.")),
+      );
+      return;
+    }
+    bool itemExists = cart.any((cartItem) => cartItem['id'] == item['id']);
+    if (itemExists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Item already in cart")),
+      );
+    } else {
+      cart.add(item);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Item added to cart")),
+      );
+    }
+    refresh();
+  }
+
+  /// Remove item from cart.
+  void removeFromCart(Map<String, dynamic> item, BuildContext context, VoidCallback refresh) {
+    if (item['id'] == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Item has no ID, cannot remove from cart.")),
+      );
+      return;
+    }
+    cart.removeWhere((cartItem) => cartItem['id'] == item['id']);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Item removed from cart")),
+    );
+    refresh();
   }
 
   /// Apply text + category filters.
@@ -56,32 +98,101 @@ class BuyerLogic {
   }
 
   /// Show product detail in a scrollable dialog.
-  void openProduct(BuildContext context, Map<String, dynamic> item) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(item['name'] as String? ?? 'Item'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if ((item['image'] as String?)?.isNotEmpty == true)
-                Image.network(item['image'] as String, fit: BoxFit.cover),
-              const SizedBox(height: 12),
-              Text("Price: \$${item['price'] ?? '0.00'}"),
-              const SizedBox(height: 10),
-              Text(item['description'] as String? ?? "No description"),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Close"),
-          ),
-        ],
-      ),
-    );
+  // Note: The original openProduct is replaced by showItemDetailDialog from item_detail_dialog.dart
+  // If openProduct is still used elsewhere, it might need adjustment or removal.
+  // For now, I'm assuming showItemDetailDialog is the primary way to show details.
+
+  Future<void> placeOrder(BuildContext context, VoidCallback refreshCart) async {
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User not logged in. Cannot place order.")),
+      );
+      return;
+    }
+
+    try {
+      // Fetch current buyer's details
+      // Reusing nameController and phoneController if they are up-to-date
+      // Or, fetch fresh data if preferred:
+      String buyerName = nameController.text;
+      String buyerPhone = phoneController.text;
+
+      if (buyerName.isEmpty || buyerPhone.isEmpty) {
+         // Attempt to load profile if not already available
+        final userDoc = await _firestore.collection('users').doc(userId).get();
+        final userData = userDoc.data();
+        if (userData != null) {
+          buyerName = userData['name'] as String? ?? 'N/A';
+          buyerPhone = userData['phone'] as String? ?? 'N/A';
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Buyer profile not found. Please update your profile.")),
+          );
+          return;
+        }
+      }
+
+      final List<Map<String, dynamic>> cartCopy = List.from(cart);
+
+      for (final item in cartCopy) {
+        final orderData = {
+          'buyerId': userId,
+          'buyerName': buyerName,
+          'buyerPhone': buyerPhone,
+          'createdAt': Timestamp.now(),
+          'itemTitle': item['title'] ?? item['name'] ?? 'N/A', // Ensure title/name field
+          'itemId': item['id'],
+          'sellerName': item['sellerName'] ?? 'N/A', // Assuming these fields exist
+          'sellerPhoneNumber': item['sellerPhoneNumber'] ?? 'N/A',
+          'sellerId': item['ownerId'] ?? 'N/A', // Assuming ownerId is seller's user ID
+          'totalPrice': item['price'],
+          // Include delivery details if they were added to the item in cart
+          'assignCourier': item['assignCourier'] ?? false,
+          'deliveryLocation': item['deliveryLocation'],
+          'specialInstructions': item['specialInstructions'],
+        };
+
+        await _firestore.collection('orders').add(orderData);
+
+        if (item['assignCourier'] == true &&
+            item['deliveryLocation'] != null &&
+            (item['deliveryLocation'] as String).isNotEmpty) {
+
+          final deliveryRequestData = {
+            'acceptedAt': null,
+            'buyerId': userId,
+            'buyerName': buyerName,
+            'buyerPhone': buyerPhone,
+            'courierId': null,
+            'courierName': null,
+            'createdAt': Timestamp.now(),
+            'deliveredAt': null,
+            'deliveryAddress': item['deliveryLocation'],
+            'itemTitle': item['title'] ?? item['name'] ?? 'N/A',
+            'itemId': item['id'],
+            'pickupAddress': item['location'] ?? 'N/A', // Original item location
+            'sellerName': item['sellerName'] ?? 'N/A',
+            'sellerPhone': item['sellerPhoneNumber'] ?? 'N/A',
+            'sellerId': item['ownerId'] ?? 'N/A',
+            'specialInstructions': item['specialInstructions'] ?? '',
+            'status': "pending",
+          };
+          await _firestore.collection('deliveryRequests').add(deliveryRequestData);
+        }
+      }
+
+      cart.clear();
+      refreshCart();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Order placed successfully!")),
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to place order: ${e.toString()}")),
+      );
+    }
   }
 
   /// Load current user's profile into controllers.

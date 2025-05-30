@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'item_detail_dialog.dart';
+import 'package:greentrack/BuyerScreens/buyer_logic.dart'; // Import BuyerLogic
 
 class ItemsTab extends StatelessWidget {
-  const ItemsTab({super.key});
+  final BuyerLogic buyerLogic; // Add BuyerLogic instance
+
+  const ItemsTab({super.key, required this.buyerLogic}); // Modify constructor
 
   Stream<QuerySnapshot<Map<String, dynamic>>> get _itemsStream =>
       FirebaseFirestore.instance.collection('items').snapshots();
@@ -34,9 +37,17 @@ class ItemsTab extends StatelessWidget {
               childAspectRatio: 3 / 4,
             ),
             itemBuilder: (_, i) {
-              final data = docs[i].data();
+              final doc = docs[i];
+              final data = doc.data();
+              final String docId = doc.id; // Get the document ID
+
+              // Add the document ID to the data map
+              Map<String, dynamic> dataWithId = Map.from(data);
+              dataWithId['id'] = docId;
+              dataWithId['ownerId'] = data['userId'] as String; // Map userId to ownerId
+
               return GestureDetector(
-                onTap: () => showItemDetailDialog(context, data),
+                onTap: () => showItemDetailDialog(context, dataWithId, buyerLogic, () {}), // Pass buyerLogic and empty refresh callback
                 child: Card(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   clipBehavior: Clip.hardEdge,
