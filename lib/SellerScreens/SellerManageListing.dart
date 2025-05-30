@@ -13,7 +13,7 @@ import '../SellerLogic/Item_model.dart';
 import '../SellerScreens/ItemDetailOverlay.dart';
 
 class SellerManageListing extends StatefulWidget {
-  const SellerManageListing({Key? key}) : super(key: key);
+  const SellerManageListing({super.key});
 
   @override
   State<SellerManageListing> createState() => _SellerManageListingState();
@@ -261,8 +261,8 @@ class _SellerManageListingState extends State<SellerManageListing> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: ThriftNestApp.primaryColor,
         shape: const CircleBorder(),
-        child: const Icon(Icons.add, size: 32),
         onPressed: _openAddSheet,
+        child: const Icon(Icons.add, size: 32),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

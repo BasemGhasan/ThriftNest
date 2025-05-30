@@ -18,14 +18,14 @@ class ListingTile extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const ListingTile({
-    Key? key,
+    super.key,
     required this.id,
     required this.title,
     required this.price,
     this.imageBytes,
     this.onEdit,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   /// Build a ListingTile straight from your Firestore document data.
   factory ListingTile.fromMap(Map<String, dynamic> data, String id) {

@@ -14,10 +14,10 @@ class DeliveryDetailScreen extends StatefulWidget {
   final bool isMyDelivery;
 
   const DeliveryDetailScreen({
-    Key? key,
+    super.key,
     required this.delivery,
     this.isMyDelivery = false,
-  }) : super(key: key);
+  });
 
   @override
   State<DeliveryDetailScreen> createState() => _DeliveryDetailScreenState();

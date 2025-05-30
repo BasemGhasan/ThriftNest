@@ -8,7 +8,7 @@ import '../courierLogic/delivery_model.dart';
 import 'delivery_detail_screen.dart';
 
 class MyDeliveries extends StatelessWidget {
-  const MyDeliveries({Key? key}) : super(key: key);
+  const MyDeliveries({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -108,10 +108,10 @@ class MyDeliveryCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const MyDeliveryCard({
-    Key? key,
+    super.key,
     required this.delivery,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -8,7 +8,7 @@ import 'available_deliveries.dart';
 import 'my_deliveries.dart';
 
 class CourierDashboard extends StatefulWidget {
-  const CourierDashboard({Key? key}) : super(key: key);
+  const CourierDashboard({super.key});
 
   @override
   State<CourierDashboard> createState() => _CourierDashboardState();

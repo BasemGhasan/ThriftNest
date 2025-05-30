@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../SellerLogic/Item_model.dart';
-import '../CommonScreens/onboarding.dart';
 
 class ItemDetailOverlay extends StatelessWidget {
   final ItemModel item;
   const ItemDetailOverlay({
-    Key? key,
+    super.key,
     required this.item,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

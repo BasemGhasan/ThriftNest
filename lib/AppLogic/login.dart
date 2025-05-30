@@ -1,11 +1,11 @@
-// lib/AppLogic/login.dart
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
+// ← relative imports, matching your project tree exactly
 import '../SellerScreens/SellerManageListing.dart';
-import 'package:thirft_nest/BuyerHomePage.dart';
-import '../courierScreens/courier_dashboard.dart';
+import '../BuyerScreens/BuyerHomePage.dart';
+import '../CourierScreens/courier_dashboard.dart';
 
 Future<void> logIn({
   required String email,
@@ -13,31 +13,25 @@ Future<void> logIn({
   required BuildContext context,
 }) async {
   try {
-    // 1) Sign in
     final cred = await FirebaseAuth.instance
-      .signInWithEmailAndPassword(email: email, password: password);
+        .signInWithEmailAndPassword(email: email, password: password);
 
-    // 2) Fetch profile from Firestore
     final snap = await FirebaseFirestore.instance
-      .collection('users')
-      .doc(cred.user!.uid)
-      .get();
+        .collection('users')
+        .doc(cred.user!.uid)
+        .get();
     final data = snap.data();
     final role = data?['role'] as String?;
     final name = data?['fullName'] as String? ?? 'User';
 
-    // 3) Welcome SnackBar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Welcome back, $name!'),
         duration: const Duration(seconds: 1),
       ),
     );
-
-    // 4) Delay briefly so user can read the message
     await Future.delayed(const Duration(milliseconds: 800));
 
-    // 5) Redirect based on role, or show error if unrecognized
     if (role == 'Seller') {
       Navigator.pushReplacement(
         context,
@@ -51,17 +45,14 @@ Future<void> logIn({
     } else if (role == 'Buyer') {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => BuyerHomePage()),
+        MaterialPageRoute(builder: (_) => const BuyerHomePage()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unrecognized user role: ${role ?? 'None'}')),
+        SnackBar(content: Text('Unrecognized role: ${role ?? 'None'}')),
       );
-      return;
     }
-  }
-  on FirebaseAuthException catch (e) {
-    // existing error mapping
+  } on FirebaseAuthException catch (e) {
     String message;
     switch (e.code) {
       case 'user-not-found':
@@ -70,12 +61,11 @@ Future<void> logIn({
       case 'wrong-password':
       case 'invalid-email':
       case 'invalid-credential':
-        message = 'Wrong email or password. Please try again.';
+        message = 'Wrong email or password.';
         break;
       default:
-        message = 'Login failed. Please check your credentials.';
+        message = 'Login failed. Please try again.';
     }
-    ScaffoldMessenger.of(context)
-      .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 }

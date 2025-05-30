@@ -1,8 +1,6 @@
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import '../main.dart';
 import '../SellerLogic/post_item.dart';
@@ -10,7 +8,7 @@ import 'LocationPicker.dart';
 
 class ItemPostingOverlay extends StatefulWidget {
   final VoidCallback onClose;
-  const ItemPostingOverlay({Key? key, required this.onClose}) : super(key: key);
+  const ItemPostingOverlay({super.key, required this.onClose});
 
   @override
   State<ItemPostingOverlay> createState() => _ItemPostingOverlayState();

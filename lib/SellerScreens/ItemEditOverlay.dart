@@ -1,10 +1,7 @@
 // lib/SellerScreens/ItemEditOverlay.dart
 
-import 'dart:typed_data';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';              
 import 'package:image_picker/image_picker.dart';
@@ -22,10 +19,10 @@ class ItemEditOverlay extends StatefulWidget {
   final VoidCallback onClose;
 
   const ItemEditOverlay({
-    Key? key,
+    super.key,
     required this.item,
     required this.onClose,
-  }) : super(key: key);
+  });
 
   @override
   State<ItemEditOverlay> createState() => _ItemEditOverlayState();

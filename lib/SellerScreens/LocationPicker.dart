@@ -10,10 +10,10 @@ class LocationPicker extends StatefulWidget {
   final TextEditingController controller;
 
   const LocationPicker({
-    Key? key,
+    super.key,
     required this.onLocationChanged,
     required this.controller,
-  }) : super(key: key);
+  });
 
   @override
   State<LocationPicker> createState() => _LocationPickerState();

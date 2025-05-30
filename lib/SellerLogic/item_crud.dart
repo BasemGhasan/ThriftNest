@@ -1,6 +1,5 @@
 // lib/SellerLogic/item_crud.dart
 
-import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../AppLogic/imageConvertor.dart';
 import 'package:flutter/foundation.dart';

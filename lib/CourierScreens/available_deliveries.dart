@@ -1,15 +1,13 @@
 // lib/courierScreens/available_deliveries.dart
 
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../main.dart';
 import '../courierLogic/delivery_service.dart';
 import '../courierLogic/delivery_model.dart';
 import 'delivery_detail_screen.dart';
 
 class AvailableDeliveries extends StatelessWidget {
-  const AvailableDeliveries({Key? key}) : super(key: key);
+  const AvailableDeliveries({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -133,10 +131,10 @@ class DeliveryCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const DeliveryCard({
-    Key? key,
+    super.key,
     required this.delivery,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
