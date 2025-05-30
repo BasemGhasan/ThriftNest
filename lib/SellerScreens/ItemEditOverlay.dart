@@ -12,7 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import '../main.dart';                             
 import '../SellerLogic/item_crud.dart';
 import '../SellerLogic/seller_listings_service.dart';
-import '../SellerLogic/item_model.dart';
+import '../SellerLogic/Item_model.dart';
 import 'LocationPicker.dart';
 
 class ItemEditOverlay extends StatefulWidget {
@@ -38,6 +38,7 @@ class _ItemEditOverlayState extends State<ItemEditOverlay> {
   late TextEditingController _priceCtrl;
   late TextEditingController _descriptionCtrl;
   late TextEditingController _locationCtrl;
+  bool _manualLocation = false;
   String? _condition;
   String? _category;
   Uint8List? _pickedImage;
@@ -273,13 +274,29 @@ class _ItemEditOverlayState extends State<ItemEditOverlay> {
                       ),
                       const SizedBox(height: 8),
 
-                      // LocationPicker
-                      LocationPicker(
-                        controller: _locationCtrl,
-                        onLocationChanged: (coords, address) {
-                          setState(() => _locationCtrl.text = address);
-                        },
+                      // Manual toggle + picker for location
+                      SwitchListTile(
+                        title: const Text("Enter location manually?"),
+                        value: _manualLocation,
+                        onChanged: (v) => setState(() => _manualLocation = v),
                       ),
+                      const SizedBox(height: 8),
+
+                      // show either a text field or the map-based picker
+                      if (_manualLocation) ...[
+                        TextFormField(
+                          controller: _locationCtrl,
+                          decoration: const InputDecoration(labelText: 'Location'),
+                          validator: (v) => v!.trim().isEmpty ? 'Required' : null,
+                        ),
+                      ] else ...[
+                        LocationPicker(
+                          controller: _locationCtrl,
+                          onLocationChanged: (coords, address) {
+                            setState(() => _locationCtrl.text = address);
+                          },
+                        ),
+                      ],
                       const SizedBox(height: 16),
 
                       // Submit

@@ -3,7 +3,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'item_model.dart';
+import '../SellerLogic/Item_model.dart';
 
 /// A singleton service that keeps a live stream of the current seller’s items.
 ///

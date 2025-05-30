@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../AppLogic/imageConvertor.dart';
 import '../SellerLogic/item_crud.dart';
+import '../SellerLogic/Item_model.dart';
 
 /// A single row in the seller’s “Manage Listings” screen.
 /// Renders a thumbnail (from Base64), title, price, and Edit/Delete buttons.
@@ -43,12 +44,28 @@ class ListingTile extends StatelessWidget {
       imageBytes: bytes,
       onEdit: () async {
         // TODO: launch your edit form, then...
-        // await updateItem(id, updatedFields);
+        // await updateItem(...);
       },
       onDelete: () async {
         await deleteItem(id);
-        // after delete, your StreamBuilder will automatically update
+        // StreamBuilder will refresh automatically
       },
+    );
+  }
+
+  /// Simplifies creating a tile directly from your model.
+  static ListingTile fromModel(
+    ItemModel item, {
+    required VoidCallback onEdit,
+    required VoidCallback onDelete,
+  }) {
+    return ListingTile(
+      id: item.id,
+      title: item.title,
+      price: item.price,
+      imageBytes: item.imageBytes,
+      onEdit: onEdit,
+      onDelete: onDelete,
     );
   }
 
@@ -111,42 +128,42 @@ class ListingTile extends StatelessWidget {
             // Edit / Delete buttons
             Row(
               children: [
-                TextButton(
-                  onPressed: onEdit,
-                  style: TextButton.styleFrom(
-                    backgroundColor:
-                        ThriftNestApp.primaryColor.withOpacity(0.1),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6)),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
-                  ),
-                  child: Text(
-                    'Edit',
-                    style: TextStyle(
-                      color: ThriftNestApp.primaryColor,
-                      fontWeight: FontWeight.w600,
+                if (onEdit != null)
+                  TextButton(
+                    onPressed: onEdit,
+                    style: TextButton.styleFrom(
+                      backgroundColor: ThriftNestApp.primaryColor.withOpacity(0.1),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6)),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    ),
+                    child: Text(
+                      'Edit',
+                      style: TextStyle(
+                        color: ThriftNestApp.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                TextButton(
-                  onPressed: onDelete,
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.red.withOpacity(0.1),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6)),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
-                  ),
-                  child: const Text(
-                    'Delete',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.w600,
+                if (onEdit != null && onDelete != null)
+                  const SizedBox(width: 8),
+                if (onDelete != null)
+                  TextButton(
+                    onPressed: onDelete,
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.red.withOpacity(0.1),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6)),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    ),
+                    child: const Text(
+                      'Delete',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ],
