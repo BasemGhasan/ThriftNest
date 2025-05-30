@@ -1,252 +1,222 @@
+// lib/courierScreens/courier_dashboard.dart
+
 import 'package:flutter/material.dart';
-import 'batch_screen.dart';
-import 'live_tracking.dart';
-import 'proof_of_delivery.dart';
-import 'profile_settings.dart';
-import 'dispute_chat.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../main.dart';
+import 'available_deliveries.dart';
+import 'my_deliveries.dart';
 
 class CourierDashboard extends StatefulWidget {
-  const CourierDashboard({super.key});
+  const CourierDashboard({Key? key}) : super(key: key);
 
   @override
   State<CourierDashboard> createState() => _CourierDashboardState();
 }
 
 class _CourierDashboardState extends State<CourierDashboard> {
-  static const Color backgroundColor = Color(0xFFEFE9DC);
-  static const Color primaryColor = Color(0xFF7BA05B);
-  static const Color textColor = Color(0xFF2E3C48);
+  int _currentIndex = 0;
+  late final Future<String> _userNameFuture;
+  
+  @override
+  void initState() {
+    super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      _userNameFuture = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get()
+          .then((snap) => snap.data()?['fullName'] as String? ?? 'Courier');
+    } else {
+      _userNameFuture = Future.value('Courier');
+    }
+  }
 
-  List<Map<String, dynamic>> deliveries = [
-    {
-      'id': 'D001',
-      'title': 'Parcel #D001',
-      'pickup': 'Hostel A',
-      'dropoff': 'Library',
-      'time': '10:00 AM',
-      'status': 'request',
-      'pickupCoords': [3.139, 101.686],
-      'dropoffCoords': [3.142, 101.690]
-    },
-    {
-      'id': 'D002',
-      'title': 'Parcel #D002',
-      'pickup': 'Gate 1',
-      'dropoff': 'Cafeteria',
-      'time': '11:30 AM',
-      'status': 'pickup',
-      'pickupCoords': [3.138, 101.684],
-      'dropoffCoords': [3.140, 101.688]
-    },
-    {
-      'id': 'D003',
-      'title': 'Parcel #D003',
-      'pickup': 'Block E',
-      'dropoff': 'Hostel C',
-      'time': '1:00 PM',
-      'status': 'active',
-      'pickupCoords': [3.141, 101.689],
-      'dropoffCoords': [3.137, 101.687]
-    },
-    {
-      'id': 'D004',
-      'title': 'Parcel #D004',
-      'pickup': 'Cafeteria',
-      'dropoff': 'Library',
-      'time': 'Yesterday',
-      'status': 'completed',
-      'pickupCoords': [3.140, 101.688],
-      'dropoffCoords': [3.142, 101.690]
-    },
-  ];
-
-  void updateStatus(String id, String newStatus) {
+  void _onTabTapped(int index) {
     setState(() {
-      final index = deliveries.indexWhere((item) => item['id'] == id);
-      if (index != -1) {
-        deliveries[index]['status'] = newStatus;
-      }
+      _currentIndex = index;
     });
   }
-
+  
   @override
   Widget build(BuildContext context) {
+    final tabs = [
+      const AvailableDeliveries(),
+      const MyDeliveries(),
+      _buildStatsTab(),
+      _buildSettingsTab(),
+    ];
+
     return Scaffold(
-      backgroundColor: backgroundColor,
-      bottomNavigationBar: BottomNavigationBar(
+      backgroundColor: ThriftNestApp.backgroundColor,
+      appBar: AppBar(
         backgroundColor: Colors.white,
-        selectedItemColor: primaryColor,
-        unselectedItemColor: Colors.grey,
-        currentIndex: 0,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const CourierDashboard()));
-          } else if (index == 1) {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const CourierProfileSettings()));
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _header(),
-              const SizedBox(height: 20),
-              _summaryStats(),
-              const SizedBox(height: 10),
-              _section("Requests", "request"),
-              _section("Pickup Assigned", "pickup"),
-              _section("Active Deliveries", "active"),
-              _section("Completed Deliveries", "completed"),
-            ],
-          ),
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: FutureBuilder<String>(
+          future: _userNameFuture,
+          builder: (context, snapshot) {
+            final name = snapshot.data ?? 'Courier';
+            return Text(
+              'Hi, $name!',
+              style: const TextStyle(
+                color: ThriftNestApp.textColor,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            );
+          },
         ),
-      ),
-    );
-  }
-
-  Widget _header() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Image.asset(
-          'lib/images/ThriftNest_Logo.png',
-          height: 40,
-        ),
-        Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.layers, color: textColor),
-              tooltip: "Batch Deliveries",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => BatchDeliveriesScreen(deliveries: deliveries),
-                  ),
-                );
-              },
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.notifications,
+              color: ThriftNestApp.primaryColor,
+              size: 28,
             ),
-            const Icon(Icons.notifications_none, color: textColor),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _summaryStats() {
-    final total = deliveries.length;
-    final completed = deliveries.where((d) => d['status'] == 'completed').length;
-    final active = deliveries.where((d) => d['status'] == 'active').length;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            onPressed: () {
+              // TODO: Navigate to notifications
+            },
           ),
         ],
       ),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: tabs,
+      ),// Add this as a floating action button in courier_dashboard.dart
+floatingActionButton: FloatingActionButton(
+  onPressed: () async {
+    try {
+      // Create a test delivery request
+      await FirebaseFirestore.instance.collection('deliveryRequests').add({
+        'itemId': 'test_item_${DateTime.now().millisecondsSinceEpoch}',
+        'itemTitle': 'Test iPhone 12 Pro',
+        'sellerId': 'test_seller_123',
+        'sellerName': 'Ahmad Rahman',
+        'sellerPhone': '+60123456789',
+        'buyerId': 'test_buyer_456', 
+        'buyerName': 'Sarah Lee',
+        'buyerPhone': '+60198765432',
+        'pickupAddress': 'APU University, Technology Park Malaysia',
+        'deliveryAddress': 'Sunway University, Bandar Sunway',
+        'courierId': null,
+        'courierName': null,
+        'status': 'pending',
+        'createdAt': FieldValue.serverTimestamp(),
+        'acceptedAt': null,
+        'deliveredAt': null,
+        'specialInstructions': 'Handle with care - electronic item',
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Test delivery created!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  },
+  backgroundColor: Colors.orange,
+  child: const Icon(Icons.add_box),
+),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
+        selectedItemColor: ThriftNestApp.primaryColor,
+        unselectedItemColor: ThriftNestApp.textColor,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_shipping),
+            label: 'Available',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assignment),
+            label: 'My Jobs',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: 'Stats',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsTab() {
+    return const Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text("Performance Summary",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
-          const SizedBox(height: 12),
-          _statRow("Total Deliveries", total.toString()),
-          _statRow("Completed Deliveries", completed.toString()),
-          _statRow("Active Deliveries", active.toString()),
-        ],
-      ),
-    );
-  }
-
-  Widget _statRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: textColor)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, color: primaryColor)),
-        ],
-      ),
-    );
-  }
-
-  Widget _section(String title, String status) {
-    final items = deliveries.where((d) => d['status'] == status).toList();
-    if (items.isEmpty) return const SizedBox();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
-        ),
-        const SizedBox(height: 10),
-        ...items.map((item) => _buildCard(item)),
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-
-  Widget _buildCard(Map<String, dynamic> data) {
-    final String route = "${data['pickup']} → ${data['dropoff']}";
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: Colors.white,
-      elevation: 4,
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Image.asset(
-            'lib/images/ThriftNest_Logo.png',
-            width: 50,
-            height: 50,
-            fit: BoxFit.cover,
+          Icon(
+            Icons.analytics,
+            size: 80,
+            color: Colors.grey,
           ),
-        ),
-        title: Text(data['title'], style: const TextStyle(fontWeight: FontWeight.bold, color: textColor)),
-        subtitle: Text(route, style: const TextStyle(color: textColor)),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(data['time'], style: const TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
-            if (data['status'] == 'request')
-              TextButton(
-                onPressed: () => updateStatus(data['id'], 'pickup'),
-                child: const Text("Accept"),
-              )
-            else if (data['status'] == 'pickup' || data['status'] == 'active')
-              TextButton(
-                onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => LiveTracking()),
-                  );
-                  if (result != null && result is Map<String, dynamic>) {
-                    updateStatus(result['id'], result['status']);
-                  }
-                },
-                child: const Text("Track"),
-              )
-          ],
-        ),
+          SizedBox(height: 16),
+          Text(
+            'Delivery Statistics',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Coming Soon',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsTab() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.settings,
+            size: 80,
+            color: Colors.grey,
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Settings',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Coming Soon',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+        ],
       ),
     );
   }

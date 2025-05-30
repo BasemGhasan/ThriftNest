@@ -1,4 +1,4 @@
-// lib/SellerLogic/item_model.dart
+// lib/SellerLogic/Item_model.dart
 
 import 'dart:convert';
 import 'dart:typed_data';
@@ -16,6 +16,7 @@ class ItemModel {
   final String ownerId;
   final DateTime createdAt;
   final String? imageBase64;
+  final String sellingStage;
 
   ItemModel({
     required this.id,
@@ -28,6 +29,7 @@ class ItemModel {
     required this.ownerId,
     required this.createdAt,
     this.imageBase64,
+    required this.sellingStage,
   });
 
   /// Build from a Firestore document snapshot.
@@ -44,6 +46,7 @@ class ItemModel {
       ownerId: data['ownerId'] as String? ?? '',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       imageBase64: data['imageBase64'] as String?,
+      sellingStage: data['sellingStage'] as String? ?? 'On Sale',
     );
   }
 
