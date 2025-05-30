@@ -180,16 +180,6 @@ class _SellerManageListingState extends State<SellerManageListing> {
                     fontWeight: FontWeight.bold));
           },
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.notifications,
-              color: ThriftNestApp.primaryColor,
-              size: 28,
-            ),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: IndexedStack(
         index: _currentIndex,

@@ -36,6 +36,7 @@ Future<void> submitNewItem({
   // Retrieve the seller's phone number from the users collection.
   final userDoc = await FirebaseFirestore.instance.collection('users').doc(ownerId).get();
   final sellerPhoneNumber = userDoc.data()?['phone'] as String? ?? '';
+  final sellerName = userDoc.data()?['fullName'] as String? ?? '';
 
   // offload image → Base64 if needed
   String? imageBase64;
@@ -59,9 +60,9 @@ Future<void> submitNewItem({
     else
       'location': location,
 
-    // New fields:
     'sellerPhoneNumber': sellerPhoneNumber,
-    'sellingStage': 'On Sell',
+    'sellerName': sellerName,
+    'sellingStage': 'On Sale',
   };
 
   await FirebaseFirestore.instance.collection('items').add(data);
