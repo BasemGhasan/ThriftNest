@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:greentrack/AppLogic/imageConvertor.dart'; // Assuming this is the correct path
-import 'package:greentrack/BuyerScreens/buyer_logic.dart'; // Import BuyerLogic
+import '../AppLogic/imageConvertor.dart'; // Assuming this is the correct path
+import '../BuyerScreens/buyer_logic.dart'; // Import BuyerLogic
 
 void showItemDetailDialog(
   BuildContext context,

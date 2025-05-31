@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'items_tab.dart';
 import 'placeholder.dart'; // Assuming this is still used for Favorites
 import '../CommonScreens/ProfileManagementScreen.dart';
-import 'package:greentrack/BuyerScreens/cart_screen.dart'; // Import CartScreen
-import 'package:greentrack/BuyerScreens/buyer_logic.dart'; // Import BuyerLogic
+import '../BuyerScreens/cart_screen.dart'; 
+import '../BuyerScreens/buyer_logic.dart'; 
 
 class BuyerHomePage extends StatefulWidget {
   const BuyerHomePage({super.key});
@@ -52,18 +52,18 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
     final tabs = <Widget>[
       ItemsTab(buyerLogic: _buyerLogic), // Pass BuyerLogic to ItemsTab
       CartScreen(buyerLogic: _buyerLogic), // Replace Placeholder with CartScreen
-      const PlaceholderTab(icon: Icons.favorite_border, label: 'Favorites coming soon'), // Keep placeholder for now
       ProfileManagementScreen(), // Assuming ProfileManagementScreen doesn't need BuyerLogic directly or gets it differently
     ];
 
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
+        automaticallyImplyLeading: false, // This removes the default back arrow
         title: FutureBuilder<String>(
           future: _nameFuture,
           builder: (context, snapshot) {
-            final name = snapshot.data ?? 'User';
-            return Text('Hi, $name!');
+        final name = snapshot.data ?? 'User';
+        return Text('Hi, $name!');
           },
         ),
       ),
@@ -75,7 +75,6 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'), // Updated icon and label
-          BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: 'Favorites'),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Profile'),
         ],
       ),

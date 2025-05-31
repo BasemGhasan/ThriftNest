@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:greentrack/BuyerScreens/buyer_logic.dart'; // Assuming project structure
+import '../BuyerScreens/buyer_logic.dart'; // Assuming project structure
 
 class CartScreen extends StatefulWidget {
   final BuyerLogic buyerLogic;
@@ -28,10 +28,6 @@ class _CartScreenState extends State<CartScreen> {
     final cart = widget.buyerLogic.cart;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Cart"),
-        backgroundColor: Colors.green, // Consistent AppBar color
-      ),
       body: Column(
         children: [
           Expanded(
@@ -63,7 +59,15 @@ class _CartScreenState extends State<CartScreen> {
                     },
                   ),
           ),
-          if (cart.isNotEmpty)
+          if (cart.isNotEmpty) ...[ // Use collection if to group multiple widgets based on a condition
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Text(
+                'Total: \$${widget.buyerLogic.getCartTotalPrice().toStringAsFixed(2)}',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.right, // Align to the right
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: ElevatedButton(
@@ -82,6 +86,7 @@ class _CartScreenState extends State<CartScreen> {
                 child: const Text("Place Order"),
               ),
             ),
+        ],
         ],
       ),
     );

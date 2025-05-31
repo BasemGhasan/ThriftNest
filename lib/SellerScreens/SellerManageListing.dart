@@ -11,7 +11,7 @@ import '../SellerLogic/item_crud.dart';
 import '../SellerLogic/seller_listings_service.dart';
 import '../SellerLogic/Item_model.dart';
 import '../SellerScreens/ItemDetailOverlay.dart';
-import '../CommonScreens/ProfileManagementScreen.dart'; // Import ProfileManagementScreen
+import '../CommonScreens/ProfileManagementScreen.dart';
 
 class SellerManageListing extends StatefulWidget {
   const SellerManageListing({super.key});
@@ -197,36 +197,136 @@ class _SellerManageListingState extends State<SellerManageListing> {
         if (!snap.hasData) return const Center(child: CircularProgressIndicator());
         final sold = snap.data!.where((it) => it.sellingStage == 'Sold').toList();
 
-        if (sold.isEmpty) {
-          return const Center(child: Text('No sold items yet.'));
+        double totalEarnings = 0.0;
+        if (sold.isNotEmpty) {
+          for (var item in sold) {
+            totalEarnings += item.price; // Assuming item.price is a double
+          }
         }
-        return ListView.builder(
-          padding: const EdgeInsets.only(bottom: 80, top: 16),
-          itemCount: sold.length,
-          itemBuilder: (ctx, i) {
-            final item = sold[i];
-            return GestureDetector(
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) => FractionallySizedBox(
-                    heightFactor: 0.85,
-                    child: ItemDetailOverlay(item: item),
+
+        return Column(
+          children: [
+            Expanded(
+              child: sold.isEmpty
+                  ? const Center( // Empty state text ONLY
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0), // Added padding for the text
+                        child: Text(
+                          'No items sold yet..', // More descriptive text
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    )
+                  : ListView.builder( // List of sold items
+                      padding: const EdgeInsets.only(top: 16, bottom: 8),
+                      itemCount: sold.length,
+                      itemBuilder: (ctx, i) {
+                        // ... (existing itemBuilder logic for ListingTile)
+                        final item = sold[i];
+                        return GestureDetector(
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (_) => FractionallySizedBox(
+                                heightFactor: 0.85,
+                                child: ItemDetailOverlay(item: item),
+                              ),
+                            );
+                          },
+                          child: ListingTile(
+                            id: item.id,
+                            title: item.title,
+                            price: item.price,
+                            imageBytes: item.imageBytes,
+                            onEdit: null,
+                            onDelete: null,
+                          ),
+                        );
+                      },
+                    ),
+            ),
+            // Conditional Image Display
+            // ─── Earnings Visual ────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+              children: [
+                const Expanded(child: Divider(thickness: 1)),
+                Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  'Earnings',
+                  style: TextStyle(
+                  color: ThriftNestApp.textColor,
+                  fontWeight: FontWeight.bold,
                   ),
-                );
-              },
-              child: ListingTile(
-                id: item.id,
-                title: item.title,
-                price: item.price,
-                imageBytes: item.imageBytes,
-                onEdit: null,
-                onDelete: null,
+                ),
+                ),
+                const Expanded(child: Divider(thickness: 1)),
+              ],
               ),
-            );
-          },
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: totalEarnings == 0.0
+                ? Image.asset(
+                  'lib/images/No earnings image.png', // Image for zero earnings
+                  height: 250, // Adjust desired height
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 150,
+                    color: Colors.grey.shade300,
+                    alignment: Alignment.center,
+                    child: const Text(
+                    'Zero earnings image placeholder\n(zero_earnings_placeholder.png)',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.black54),
+                    ),
+                  );
+                  },
+                )
+                : Image.asset(
+                  'lib/images/Positive earnings image.png', // Image for positive earnings
+                  height: 250, // Adjust desired height
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 150,
+                    color: Colors.grey.shade300,
+                    alignment: Alignment.center,
+                    child: const Text(
+                    'Earnings image placeholder\n(has_earnings_placeholder.png)',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.black54),
+                    ),
+                  );
+                  },
+                ),
+            ),
+            // Total Earnings Display
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0), // Adjusted padding
+              child: RichText(
+              text: TextSpan(
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                children: [
+                  const TextSpan(
+                    text: 'Total earnings with ThriftNest: ',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  TextSpan(
+                    text: '\$${totalEarnings.toStringAsFixed(2)}',
+                    style: const TextStyle(color: ThriftNestApp.primaryColor),
+                  ),
+                ],
+              ),
+            ),
+            ),
+          ],
         );
       },
     );
