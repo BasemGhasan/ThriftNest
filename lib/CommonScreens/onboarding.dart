@@ -3,59 +3,8 @@ import '../main.dart';
 import 'LoginScreen.dart';
 import 'SignupScreen.dart';
 
-class Onboarding extends StatelessWidget {
-  const Onboarding ({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'ThriftNest',
-      theme: ThemeData(
-        scaffoldBackgroundColor: ThriftNestApp.backgroundColor,
-        primaryColor: ThriftNestApp.primaryColor,
-
-        // — Add this block here —
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: ThriftNestApp.primaryColor),
-          ),
-          // RED error styling:
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Colors.red),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Colors.red),
-          ),
-          errorStyle: const TextStyle(color: Colors.red),
-          labelStyle: TextStyle(color: ThriftNestApp.textColor),
-        ),
-
-        // — end of added block —
-        textTheme: const TextTheme(bodyMedium: TextStyle(color: ThriftNestApp.textColor)),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: ThriftNestApp.primaryColor,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-      home: const OnboardingScreen(),
-    );
-  }
-}
+// The Onboarding class (which was a MaterialApp) has been removed.
+// OnboardingScreen below is the actual UI for this route.
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -183,3 +132,4 @@ class OnboardingScreen extends StatelessWidget {
     );
   }
 }
+

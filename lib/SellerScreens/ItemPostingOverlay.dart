@@ -41,8 +41,24 @@ class _ItemPostingOverlayState extends State<ItemPostingOverlay> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final file   = await picker.pickImage(source: ImageSource.gallery);
+    final file = await picker.pickImage(source: ImageSource.gallery);
     if (file != null) {
+      final int fileSize = await file.length();
+      const int maxSizeInBytes = 700 * 1024; // 700KB
+
+      if (fileSize > maxSizeInBytes) {
+        if (!mounted) return; // Check if the widget is still in the tree
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image too large. Please select an image under 700KB.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          _pickedImage = null; // Clear any previously picked image
+        });
+        return; // Stop processing
+      }
       _pickedImage = await file.readAsBytes();
       setState(() {});
     }
@@ -103,19 +119,24 @@ class _ItemPostingOverlayState extends State<ItemPostingOverlay> {
     final sh = MediaQuery.of(context).size.height;
 
     return Center(
-      child: Container(
+      child: SizedBox( // Maintain original sizing
         width: MediaQuery.of(context).size.width * 0.9,
         height: sh * 0.8,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Scaffold( // New Scaffold to provide context for SnackBar
+          backgroundColor: Colors.transparent, // Allows sheet's Material background to show
+          body: Container( // This is the original Container
+            // height: double.infinity, // Takes full height of Scaffold body
+            // width: double.infinity,  // Takes full width of Scaffold body
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
+            ),
+            child: Column( // Original content
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const SizedBox(width: 24),
                 const Text(
@@ -129,7 +150,6 @@ class _ItemPostingOverlayState extends State<ItemPostingOverlay> {
               ],
             ),
             const SizedBox(height: 8),
-
             Expanded(
               child: SingleChildScrollView(
                 child: Form(
@@ -161,7 +181,16 @@ class _ItemPostingOverlayState extends State<ItemPostingOverlay> {
                                 ),
                               ),
                       ),
-                      const SizedBox(height: 8),
+                      // Add this Text widget for the warning:
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0, bottom: 4.0), // Add some vertical padding
+                        child: Text(
+                          'Max image size: 700KB. Larger images will be rejected.',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 8), // Existing SizedBox, adjust its height if needed or remove if padding above is enough
 
                       TextFormField(
                         controller: _titleCtrl,
@@ -305,7 +334,9 @@ class _ItemPostingOverlayState extends State<ItemPostingOverlay> {
                 ),
               ),
             ),
-          ],
+            ],
+           ),
+          ),
         ),
       ),
     );

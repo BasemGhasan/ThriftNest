@@ -199,7 +199,7 @@ class _DeliveryDetailScreenState extends State<DeliveryDetailScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Call Contact'),
-        content: Text('Phone: $phoneNumber\n\nPhone calling will be enabled once url_launcher is properly configured.'),
+        content: Text('Phone: $phoneNumber'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

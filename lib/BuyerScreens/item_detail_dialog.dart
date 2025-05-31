@@ -1,7 +1,7 @@
-import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../AppLogic/imageConvertor.dart'; // Assuming this is the correct path
+import '../AppLogic/imageConvertor.dart';
 import '../BuyerScreens/buyer_logic.dart'; // Import BuyerLogic
 
 void showItemDetailDialog(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'items_tab.dart';
-import 'placeholder.dart'; // Assuming this is still used for Favorites
 import '../CommonScreens/ProfileManagementScreen.dart';
 import '../BuyerScreens/cart_screen.dart'; 
 import '../BuyerScreens/buyer_logic.dart'; 

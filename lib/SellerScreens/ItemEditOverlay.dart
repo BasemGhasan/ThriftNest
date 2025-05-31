@@ -62,8 +62,27 @@ class _ItemEditOverlayState extends State<ItemEditOverlay> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final xfile = await picker.pickImage(source: ImageSource.gallery, maxWidth: 800);
+    // The `maxWidth: 800` here is for image_picker's own compression,
+    // but we still need our raw file size check before reading bytes.
+    final xfile = await picker.pickImage(source: ImageSource.gallery, maxWidth: 800); 
     if (xfile != null) {
+      final int fileSize = await xfile.length();
+      const int maxSizeInBytes = 700 * 1024; // 700KB
+
+      if (fileSize > maxSizeInBytes) {
+        if (!mounted) return; // Check if the widget is still in the tree
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image too large. Please select an image under 700KB.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        // Clear the current attempted pick
+        setState(() {
+           _pickedImage = null; 
+        });
+        return; // Stop processing
+      }
       final bytes = await xfile.readAsBytes();
       setState(() => _pickedImage = bytes);
     }
@@ -112,20 +131,23 @@ class _ItemEditOverlayState extends State<ItemEditOverlay> {
     final sh = MediaQuery.of(context).size.height;
 
     return Center(
-      child: Container(
+      child: SizedBox( // Maintain original sizing
         width: MediaQuery.of(context).size.width * 0.9,
         height: sh * 0.8,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
-        ),
-        child: Column(
-          children: [
-            // ─── Header ────────────────────────────────────────
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Scaffold( // New Scaffold
+          backgroundColor: Colors.transparent,
+          body: Container( // Original Container
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
+            ),
+            child: Column( // Original content
+              children: [
+                // ─── Header ────────────────────────────────────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const SizedBox(width: 24),
                 const Text('Edit Item',
@@ -137,7 +159,6 @@ class _ItemEditOverlayState extends State<ItemEditOverlay> {
               ],
             ),
             const SizedBox(height: 8),
-
             // ─── Form ──────────────────────────────────────────
             Expanded(
               child: SingleChildScrollView(
@@ -173,7 +194,16 @@ class _ItemEditOverlayState extends State<ItemEditOverlay> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      // Add this Text widget for the warning:
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0, bottom: 4.0), // Add some vertical padding
+                        child: Text(
+                          'Max image size: 700KB. Larger images will be rejected.',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 8), // Existing SizedBox
 
                       // Title
                       TextFormField(
@@ -315,7 +345,9 @@ class _ItemEditOverlayState extends State<ItemEditOverlay> {
                 ),
               ),
             ),
-          ],
+            ],
+           ),
+          ),
         ),
       ),
     );

@@ -7,6 +7,7 @@ import '../SellerScreens/SellerManageListing.dart';
 import '../BuyerScreens/BuyerHomePage.dart';
 import '../CourierScreens/courier_dashboard.dart';
 
+
 Future<void> logIn({
   required String email,
   required String password,
@@ -15,22 +16,38 @@ Future<void> logIn({
   try {
     final cred = await FirebaseAuth.instance
         .signInWithEmailAndPassword(email: email, password: password);
+    
+    final User? firebaseUser = cred.user;
 
+    if (firebaseUser == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed: Could not get user details.')),
+        );
+      }
+      return;
+    }
+
+    // Directly proceed to fetch role and navigate to dashboard
     final snap = await FirebaseFirestore.instance
         .collection('users')
-        .doc(cred.user!.uid)
+        .doc(firebaseUser.uid) // Use firebaseUser directly
         .get();
     final data = snap.data();
     final role = data?['role'] as String?;
     final name = data?['fullName'] as String? ?? 'User';
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Welcome back, $name!'),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Welcome back, $name!'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
     await Future.delayed(const Duration(milliseconds: 800));
+
+    if (!context.mounted) return; // Check again before navigation
 
     if (role == 'Seller') {
       Navigator.pushReplacement(

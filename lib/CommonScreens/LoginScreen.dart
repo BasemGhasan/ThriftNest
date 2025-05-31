@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../AppLogic/login.dart';    
 import 'onboarding.dart';           
 import '../main.dart';
@@ -20,6 +21,106 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleForgotPassword() async {
+    String? email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      // If email field is empty, show a dialog to get email
+      email = await showDialog<String>(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          final TextEditingController emailDialogController = TextEditingController();
+          return AlertDialog(
+            title: const Text('Reset Password'),
+            content: TextField(
+              controller: emailDialogController,
+              decoration: const InputDecoration(hintText: "Enter your email address"),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop(null); // Close dialog, return null
+                },
+              ),
+              TextButton(
+                child: const Text('Submit'),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop(emailDialogController.text.trim()); // Close dialog, return email
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    if (email == null || email.isEmpty) {
+      // User cancelled dialog or entered nothing
+      if (mounted) { // Check if widget is still in the tree
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Email address is required to reset password.')),
+        );
+      }
+      return;
+    }
+
+    // Basic email format validation
+    final emailPattern = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    if (!emailPattern.hasMatch(email)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter a valid email address.')),
+        );
+      }
+      return;
+    }
+    
+    // Show loading indicator while sending email
+    if (mounted) {
+        showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+                return const Center(child: CircularProgressIndicator());
+            },
+        );
+    }
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (mounted) { // Check mounted after await
+        Navigator.of(context).pop(); // Dismiss loading indicator
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Password reset email sent to $email. Please check your inbox.')),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) { // Check mounted after await
+        Navigator.of(context).pop(); // Dismiss loading indicator
+        String errorMessage = 'An error occurred. Please try again.';
+        if (e.code == 'user-not-found') {
+          errorMessage = 'No user found for that email.';
+        } else if (e.code == 'invalid-email') {
+          errorMessage = 'The email address is not valid.';
+        }
+        // Consider logging e.message or e.code for debugging
+        debugPrint('Forgot password error: ${e.code} - ${e.message}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
+    } catch (e) {
+       if (mounted) { // Check mounted after await
+        Navigator.of(context).pop(); // Dismiss loading indicator
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An unexpected error occurred: ${e.toString()}')),
+        );
+      }
+    }
   }
 
   String? _validateEmail(String? v) {
@@ -140,7 +241,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: const Text('Sign In'),
                   ),
                 ),
-
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextButton(
+                    onPressed: _handleForgotPassword,
+                    child: const Text('Forgot password?'),
+                  ),
+                ),
                 SizedBox(height: vSpace),
               ],
             ),
