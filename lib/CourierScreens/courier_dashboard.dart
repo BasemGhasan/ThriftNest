@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../main.dart';
 import 'available_deliveries.dart';
 import 'my_deliveries.dart';
+import '../CourierScreens/courier_statistics.dart';
 import '../CommonScreens/ProfileManagementScreen.dart'; // Import ProfileManagementScreen
 
 class CourierDashboard extends StatefulWidget {
@@ -45,7 +46,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
     final tabs = [
       const AvailableDeliveries(),
       const MyDeliveries(),
-      _buildStatsTab(),
+      const CourierStatistics(),
       ProfileManagementScreen(),
     ];
 
@@ -69,65 +70,12 @@ class _CourierDashboardState extends State<CourierDashboard> {
             );
           },
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.notifications,
-              color: ThriftNestApp.primaryColor,
-              size: 28,
-            ),
-            onPressed: () {
-              // TODO: Navigate to notifications
-            },
-          ),
-        ],
+       
       ),
       body: IndexedStack(
         index: _currentIndex,
         children: tabs,
-      ),// Add this as a floating action button in courier_dashboard.dart
-floatingActionButton: FloatingActionButton(
-  onPressed: () async {
-    try {
-      // Create a test delivery request
-      await FirebaseFirestore.instance.collection('deliveryRequests').add({
-        'itemId': 'test_item_${DateTime.now().millisecondsSinceEpoch}',
-        'itemTitle': 'Test iPhone 12 Pro',
-        'sellerId': 'test_seller_123',
-        'sellerName': 'Ahmad Rahman',
-        'sellerPhone': '+60123456789',
-        'buyerId': 'test_buyer_456', 
-        'buyerName': 'Sarah Lee',
-        'buyerPhone': '+60198765432',
-        'pickupAddress': 'APU University, Technology Park Malaysia',
-        'deliveryAddress': 'Sunway University, Bandar Sunway',
-        'courierId': null,
-        'courierName': null,
-        'status': 'pending',
-        'createdAt': FieldValue.serverTimestamp(),
-        'acceptedAt': null,
-        'deliveredAt': null,
-        'specialInstructions': 'Handle with care - electronic item',
-      });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Test delivery created!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  },
-  backgroundColor: Colors.orange,
-  child: const Icon(Icons.add_box),
-),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
@@ -158,7 +106,7 @@ floatingActionButton: FloatingActionButton(
     );
   }
 
-  Widget _buildStatsTab() {
+  /*Widget _buildStatsTab() {
     return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -219,5 +167,5 @@ floatingActionButton: FloatingActionButton(
   //       ],
   //     ),
   //   );
-  // }
+  // } */
 }
