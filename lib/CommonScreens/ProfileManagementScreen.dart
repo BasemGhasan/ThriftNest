@@ -65,19 +65,47 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
     if (_profileFormKey.currentState!.validate()) {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
+        // Store current email before attempting update, to check if it was part of the change.
+        // However, the service method now returns whether verification was sent, which is more direct.
+        // String originalEmail = user.email ?? ''; // Not strictly needed anymore
+
         try {
-          await _profileService.updateProfile(
+          // The service method now returns true if email verification was sent
+          bool emailVerificationSent = await _profileService.updateProfile(
             uid: user.uid,
             fullName: _fullNameController.text.trim(),
-            email: _emailController.text.trim(),
+            email: _emailController.text.trim(), // New email from form
             phone: _phoneNumberController.text.trim(),
           );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Profile updated successfully!')),
-          );
+
+          if (emailVerificationSent) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Profile details updated. A verification email has been sent to ${_emailController.text.trim()}. Please verify to update your email address.'),
+                duration: Duration(seconds: 5), // Longer duration for important message
+              ),
+            );
+            // Optionally, you might want to refresh user data or state here if needed,
+            // e.g., by calling _loadUserData() again, though email in Auth won't change yet.
+            // For now, Firebase Auth handles the email update transparently after verification.
+            // The displayed email in _emailController will be the new one, but Auth email is old.
+            // Consider if _loadUserData() should be called to reflect the old email until verification.
+            // For simplicity, we'll leave the controller with the new email.
+            // The user object also needs to be reloaded to get the latest email from auth `user.reload()`
+            // then `FirebaseAuth.instance.currentUser` will have the updated email if verified.
+            // This screen might need to reflect that the new email is pending verification.
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Profile updated successfully!')),
+            );
+          }
+          // Reload user data to reflect any changes from Firestore (e.g. name, phone)
+          // and to get the latest user.email from Auth (though it only changes after verification)
+          await _loadUserData(); 
+
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error updating profile: $e')),
+            SnackBar(content: Text('Error updating profile: ${e.toString()}')),
           );
           print("Error updating profile: $e");
         }
