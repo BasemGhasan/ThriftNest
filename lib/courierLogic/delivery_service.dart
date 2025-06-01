@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'delivery_model.dart';
+import '../SellerLogic/item_crud.dart';
 
 class DeliveryService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -64,10 +65,37 @@ class DeliveryService {
 
   /// Complete delivery
   static Future<void> completeDelivery(String deliveryId) async {
+    // First, get the delivery document to retrieve the itemId
+    DocumentSnapshot deliveryDoc = await _firestore.collection(_collection).doc(deliveryId).get();
+    if (!deliveryDoc.exists) {
+      throw Exception("Delivery request with ID $deliveryId not found.");
+    }
+    Map<String, dynamic>? deliveryData = deliveryDoc.data() as Map<String, dynamic>?;
+    String? itemId = deliveryData?['itemId'] as String?;
+
+    if (itemId == null || itemId.isEmpty) {
+      // Consider how to handle cases where itemId is missing.
+      // For now, we'll log and proceed with delivery completion.
+      print('Warning: itemId not found in delivery request $deliveryId. Cannot update item sellingStage.');
+    }
+
+    // Update the delivery request status
     await _firestore.collection(_collection).doc(deliveryId).update({
       'status': 'delivered',
       'deliveredAt': FieldValue.serverTimestamp(),
     });
+
+    // If itemId is available, update the item's sellingStage to 'Sold'
+    if (itemId != null && itemId.isNotEmpty) {
+      try {
+        await updateItem(itemId: itemId, sellingStage: 'Sold');
+      } catch (e) {
+        // Log or handle the error if updating the item fails
+        print('Error updating sellingStage for item $itemId: $e');
+        // Depending on requirements, you might want to throw this error
+        // or handle it without failing the entire completeDelivery operation.
+      }
+    }
   }
 
   /// Cancel delivery (return to pending status)

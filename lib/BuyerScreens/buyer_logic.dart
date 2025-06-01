@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart' show ImagePicker, ImageSource;
 import 'package:firebase_auth/firebase_auth.dart';
+import '../SellerLogic/item_crud.dart';
 
 class BuyerLogic {
   final TextEditingController searchController = TextEditingController();
@@ -32,7 +33,7 @@ class BuyerLogic {
 
   /// Fetch all products from Firestore.
   Future<void> loadProducts() async {
-    final snapshot = await _firestore.collection('items').get(); // Changed to 'items'
+    final snapshot = await _firestore.collection('items').where('sellingStage', isEqualTo: 'On Sale').get(); // Changed to 'items'
     allProducts = snapshot.docs.map((doc) {
       // Create a mutable copy of doc.data() to avoid modifying the original snapshot data
       Map<String, dynamic> data = Map<String, dynamic>.from(doc.data());
@@ -192,6 +193,18 @@ class BuyerLogic {
 
         await _firestore.collection('orders').add(orderData);
 
+        if (item['id'] != null) {
+          if (item['assignCourier'] == true && 
+              item['deliveryLocation'] != null && 
+              (item['deliveryLocation'] as String).isNotEmpty) {
+            // If courier is assigned and delivery location is provided
+            await updateItem(itemId: item['id'] as String, sellingStage: 'On Delivery');
+          } else {
+            // If no courier is assigned or no delivery location
+            await updateItem(itemId: item['id'] as String, sellingStage: 'Sold');
+          }
+        }
+
         if (item['assignCourier'] == true && 
             item['deliveryLocation'] != null && 
             (item['deliveryLocation'] as String).isNotEmpty) {
@@ -219,8 +232,22 @@ class BuyerLogic {
         }
       }
 
-      cart.clear();
-      refreshCart();
+      // Item sellingStages have been updated in Firestore.
+      // Reload products to get the latest data.
+      await loadProducts(); 
+      
+      // refreshCart is the callback that should trigger UI update for product list.
+      // filterProducts applies current filters to the new allProducts and calls refreshCart.
+      filterProducts(searchController.text, refreshCart); 
+
+      cart.clear(); // Clear the local cart data.
+      // Call refreshCart again IF the cart screen itself needs a separate refresh signal
+      // *after* cart.clear() and *distinct* from product list refresh.
+      // Often, the same refreshCart would rebuild both if they are on the same parent widget.
+      // Let's assume the refreshCart in filterProducts is sufficient for product list,
+      // and an additional one for cart if needed. The original code had one after cart.clear().
+      refreshCart(); // This ensures the cart screen UI (if separate) is also updated.
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Order placed successfully!")),
       );

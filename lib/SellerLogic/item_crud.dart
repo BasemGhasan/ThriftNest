@@ -26,6 +26,7 @@ Future<void> updateItem({
   String? category,
   String? location,
   Uint8List? imageBytes,
+ String? sellingStage,
 }) async {
   // Build the map of fields to update
   final data = <String, dynamic>{};
@@ -35,6 +36,7 @@ Future<void> updateItem({
   if (condition != null) data['condition'] = condition;
   if (category != null) data['category'] = category;
   if (location != null) data['location'] = location;
+  if (sellingStage != null) data['sellingStage'] = sellingStage;
 
   // If an image was supplied, encode it first off the UI thread:
   if (imageBytes != null) {
@@ -52,3 +54,4 @@ Future<void> updateItem({
       .doc(itemId)
       .update(data);
 }
+
