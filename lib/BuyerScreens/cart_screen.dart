@@ -11,11 +11,15 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  String _buildPriceDetails(BuyerLogic buyerLogic) {
+    String details = "Includes: Items total (\$${buyerLogic.getCartItemsSubtotal().toStringAsFixed(2)})";
+    if (buyerLogic.getDeliveryFee() > 0) {
+      details += " + Delivery fee (\$${buyerLogic.getDeliveryFee().toStringAsFixed(2)})";
+    }
+    return details;
+  }
+
   void _removeItem(Map<String, dynamic> item) {
-    // The refresh callback for buyer_logic.removeFromCart will be handled by
-    // the main screen that holds buyer_logic, or buyer_logic itself if it uses a state notifier.
-    // For CartScreen, we call setState to ensure this screen rebuilds immediately
-    // after an item is removed, reflecting the change in widget.buyerLogic.cart.
     widget.buyerLogic.removeFromCart(item, context, () {
       if (mounted) {
         setState(() {});
@@ -40,12 +44,10 @@ class _CartScreenState extends State<CartScreen> {
                       // Assuming item data structure based on previous context
                       final String title = item['name'] ?? item['title'] ?? 'Unnamed Item';
                       final dynamic price = item['price'] ?? 'N/A';
-
                       return Card(
                         margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                         child: ListTile(
                           // You might want to add an image if available:
-                          // leading: item['image'] != null ? Image.network(item['image'], width: 50, height: 50, fit: BoxFit.cover) : null,
                           title: Text(title),
                           subtitle: Text('Price: \$${price.toString()}'),
                           trailing: IconButton(
@@ -62,10 +64,34 @@ class _CartScreenState extends State<CartScreen> {
           if (cart.isNotEmpty) ...[ // Use collection if to group multiple widgets based on a condition
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text(
-                'Total: \$${widget.buyerLogic.getCartTotalPrice().toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.right, // Align to the right
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end, // Align text to the right
+                children: [
+                  Text(
+                    'Items Subtotal: \$${widget.buyerLogic.getCartItemsSubtotal().toStringAsFixed(2)}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  if (widget.buyerLogic.getDeliveryFee() > 0) ...[
+                    SizedBox(height: 4),
+                    Text(
+                      'Delivery Fee: \$${widget.buyerLogic.getDeliveryFee().toStringAsFixed(2)}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  const Divider(),
+                  Text(
+                    'Grand Total: \$${widget.buyerLogic.getGrandTotalPrice().toStringAsFixed(2)}',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  // Detailed breakdown (smaller, gray)
+                  Text(
+                    _buildPriceDetails(widget.buyerLogic), // Helper function for clarity
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    textAlign: TextAlign.right,
+                  ),
+                ],
               ),
             ),
             Padding(

@@ -89,7 +89,7 @@ class BuyerLogic {
     refresh();
   }
 
-  double getCartTotalPrice() {
+  double getCartItemsSubtotal() {
     double total = 0.0;
     for (var item in cart) {
       if (item['price'] is num) {
@@ -97,6 +97,20 @@ class BuyerLogic {
       }
     }
     return total;
+  }
+
+  double getDeliveryFee() {
+    double fee = 0.0;
+    for (var item in cart) {
+      if (item['assignCourier'] == true) {
+        fee += 5.0;
+      }
+    }
+    return fee;
+  }
+
+  double getGrandTotalPrice() {
+    return getCartItemsSubtotal() + getDeliveryFee();
   }
 
   /// Apply text + category filters.
@@ -118,11 +132,6 @@ class BuyerLogic {
     selectedCategory = category;
     filterProducts(searchController.text, refresh);
   }
-
-  /// Show product detail in a scrollable dialog.
-  // Note: The original openProduct is replaced by showItemDetailDialog from item_detail_dialog.dart
-  // If openProduct is still used elsewhere, it might need adjustment or removal.
-  // For now, I'm assuming showItemDetailDialog is the primary way to show details.
 
   Future<void> placeOrder(BuildContext context, VoidCallback refreshCart) async {
     final userId = _auth.currentUser?.uid;
@@ -237,15 +246,9 @@ class BuyerLogic {
       await loadProducts(); 
       
       // refreshCart is the callback that should trigger UI update for product list.
-      // filterProducts applies current filters to the new allProducts and calls refreshCart.
       filterProducts(searchController.text, refreshCart); 
 
       cart.clear(); // Clear the local cart data.
-      // Call refreshCart again IF the cart screen itself needs a separate refresh signal
-      // *after* cart.clear() and *distinct* from product list refresh.
-      // Often, the same refreshCart would rebuild both if they are on the same parent widget.
-      // Let's assume the refreshCart in filterProducts is sufficient for product list,
-      // and an additional one for cart if needed. The original code had one after cart.clear().
       refreshCart(); // This ensures the cart screen UI (if separate) is also updated.
 
       ScaffoldMessenger.of(context).showSnackBar(
